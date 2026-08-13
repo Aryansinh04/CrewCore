@@ -1,0 +1,466 @@
+/* Core Styling & Design System - Crewcore HR Management System */
+
+:root {
+  /* Common Dark Theme Color Palette */
+  --bg-main: #06070a;
+  --bg-surface: #0f1016;
+  --bg-card: rgba(18, 20, 29, 0.65);
+  --bg-card-hover: rgba(28, 30, 43, 0.8);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Role Theme Colors: Recruiter (Purple/Indigo) */
+  --recruiter-color: #a78bfa;
+  --recruiter-color-dark: #7c3aed;
+  --recruiter-glow: rgba(167, 139, 250, 0.15);
+  --recruiter-gradient: linear-gradient(135deg, #8b5cf6, #6366f1);
+  --recruiter-gradient-hover: linear-gradient(135deg, #9b72f8, #7477f3);
+  
+  /* Role Theme Colors: Candidate (Emerald/Teal) */
+  --candidate-color: #34d399;
+  --candidate-color-dark: #059669;
+  --candidate-glow: rgba(52, 211, 153, 0.15);
+  --candidate-gradient: linear-gradient(135deg, #10b981, #14b8a6);
+  --candidate-gradient-hover: linear-gradient(135deg, #34d399, #2dd4bf);
+  
+  /* Shared System Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Theme-specific Component Colors (Default/Classic) */
+  --active-bg-recruiter: rgba(139, 92, 246, 0.12);
+  --active-bg-candidate: rgba(16, 185, 129, 0.12);
+  --logout-bg: rgba(239, 68, 68, 0.12);
+  --logout-border: 1px solid rgba(239, 68, 68, 0.2);
+  --logout-text: #f87171;
+  --stat-icon-bg: rgba(139, 92, 246, 0.08);
+  --score-high: #34d399;
+  --score-mid: #60a5fa;
+  --score-low: #f87171;
+  --candidate-icon-bg: rgba(16, 185, 129, 0.08);
+  --alert-success-bg: rgba(16, 185, 129, 0.08);
+  --alert-success-border: 1px solid rgba(16, 185, 129, 0.2);
+  --file-attached-bg: rgba(52, 211, 153, 0.08);
+  --file-attached-border: 1px solid rgba(52, 211, 153, 0.2);
+  --trash-color: #f87171;
+  --bot-panel-bg: rgba(15, 16, 22, 0.95);
+  --bot-border-recruiter: rgba(139, 92, 246, 0.2);
+  --bot-border-candidate: rgba(16, 185, 129, 0.2);
+
+  /* Font Families */
+  --font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+  
+  /* Glassmorphism Details */
+  --glass-blur: blur(16px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  /* Transition Constants */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Monochrome Theme Overrides */
+body.theme-monochrome {
+  --bg-main: #f1f5f9; /* Premium soft platinum background */
+  --bg-surface: #e2e8f0; /* Soft surface background */
+  --bg-card: rgba(255, 255, 255, 0.9); /* Premium white card */
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.16);
+  
+  --text-primary: #0f172a; /* Deep slate dark text */
+  --text-secondary: #475569; /* Slate secondary text */
+  --text-muted: #64748b;
+
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05);
+
+  --bot-panel-bg: rgba(255, 255, 255, 0.98);
+  
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.02) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.01) 0px, transparent 50%);
+}
+
+/* Base resets & document settings */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Layout Utilities */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 2rem 5% 5rem 5%;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Glassmorphism Panel styles */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--border-color) 1px solid;
+  border-radius: 16px;
+  box-shadow: var(--glass-shadow);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-hover);
+}
+
+/* Button & Form Controls */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: #ffffff;
+}
+
+.btn-recruiter {
+  background: var(--recruiter-gradient);
+  box-shadow: 0 0 15px var(--recruiter-glow);
+}
+
+.btn-recruiter:hover {
+  background: var(--recruiter-gradient-hover);
+  box-shadow: 0 0 25px var(--recruiter-glow);
+  transform: translateY(-1px);
+}
+
+.btn-candidate {
+  background: var(--candidate-gradient);
+  box-shadow: 0 0 15px var(--candidate-glow);
+}
+
+.btn-candidate:hover {
+  background: var(--candidate-gradient-hover);
+  box-shadow: 0 0 25px var(--candidate-glow);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-outline:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.form-input, .form-textarea, .form-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.03);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Badge styles */
+.badge {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+}
+
+.badge-purple {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c084fc;
+}
+
+.badge-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.badge-info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+/* Typography elements */
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+/* Chat bubble styling for CrewBot */
+.chat-message {
+  display: flex;
+  margin-bottom: 1rem;
+  max-width: 85%;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.chat-message.bot {
+  align-self: flex-start;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.chat-bubble {
+  padding: 0.85rem 1.1rem;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.chat-message.bot .chat-bubble {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-message.user .chat-bubble {
+  background: var(--theme-bubble, var(--recruiter-gradient));
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalPop {
+  0% { opacity: 0; transform: scale(0.94) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Typist dot animations */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--text-secondary);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.typing-dot:nth-child(1) { animation: pulse 1s infinite 0.1s; }
+.typing-dot:nth-child(2) { animation: pulse 1s infinite 0.2s; }
+.typing-dot:nth-child(3) { animation: pulse 1s infinite 0.3s; }
+
+/* Drag and Drop File Upload Area */
+.upload-zone {
+  border: 2px dashed rgba(52, 211, 153, 0.25);
+  border-radius: 12px;
+  background: rgba(52, 211, 153, 0.02);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.upload-zone:hover {
+  border-color: var(--candidate-color);
+  background: rgba(52, 211, 153, 0.06);
+  box-shadow: 0 0 10px var(--candidate-glow);
+}
+
+.upload-zone.active {
+  border-color: var(--candidate-color);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+/* Decoupled Login Theme Classes */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-image: radial-gradient(circle at center, rgba(17,18,28,0.4) 0%, rgba(6,7,10,0.98) 100%);
+}
+
+body.theme-monochrome .auth-container {
+  background: #f1f5f9;
+  background-image: radial-gradient(circle at center, rgba(99, 102, 241, 0.04) 0%, #e2e8f0 100%);
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--candidate-color);
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.auth-select {
+  width: 100%;
+  padding-left: 2.5rem;
+  background: #12141d;
+  color: #fff;
+}
+
+/* Decoupled select overrides */
+body.theme-monochrome .auth-select {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+body.theme-monochrome .form-input,
+body.theme-monochrome .form-textarea,
+body.theme-monochrome .form-select {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+
+body.theme-monochrome .form-input:focus,
+body.theme-monochrome .form-textarea:focus,
+body.theme-monochrome .form-select:focus {
+  background: #ffffff;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+body.theme-monochrome .chat-message.bot .chat-bubble {
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
