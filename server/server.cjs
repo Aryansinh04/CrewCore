@@ -734,8 +734,8 @@ const screenFallback = (resume, answers) => {
   const textToAnalyze = (resume + ' ' + answers.map(a => a.answer).join(' ')).toLowerCase();
   let score = 75;
   const positiveKeywords = [
-    'experience', 'management', 'sourcing', 'ats', 'workday', 'payroll', 
-    'mediation', 'grievance', 'compliance', 'negotiation', 'star method', 
+    'experience', 'management', 'sourcing', 'ats', 'workday', 'payroll',
+    'mediation', 'grievance', 'compliance', 'negotiation', 'star method',
     'boolean', 'certified', 'led', 'managed', 'database'
   ];
 
@@ -899,7 +899,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
     const botContext = roleMode === 'recruiter'
       ? "You are CrewBot, a helpful AI Recruiting Assistant for Crewcore HR. You help recruiters draft job descriptions, prepare interview templates, and screen candidates. Keep responses professional, clear, and action-oriented. Support simple bolding (**text**) and bullet lists (- item) in markdown."
       : "You are CrewBot, a helpful AI HR Coach for candidates in the Crewcore HR Learning Academy. You explain HR concepts (like STAR method, PIPs, compliance) and guide candidates through roleplay exercises. Keep responses supportive, clear, and educational. Support simple bolding (**text**) and bullet lists (- item) in markdown.";
-    
+
     let formattedHistory = '';
     if (history && history.length > 0) {
       formattedHistory = "History:\n" + history.map(h => `${h.role === 'user' ? 'User' : 'CrewBot'}: ${h.content}`).join('\n') + '\n';
@@ -917,6 +917,6 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 
 // Start Express Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`MongoDB-supported HR backend server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
 });
