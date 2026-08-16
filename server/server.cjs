@@ -915,8 +915,16 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
   }
 });
 
+// 1. Serve the static frontend assets from your root dist folder
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// 2. Route all incoming web page requests straight to your compiled index.html file
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
+
 // Start Express Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });
