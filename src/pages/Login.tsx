@@ -67,7 +67,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
     setErrorMsg('');
 
     if (authMode === 'signin') {
-      if (!email || !password) {
+      if (!name || !email || !password) {
         setErrorMsg('Please fill in all fields.');
         return;
       }
@@ -87,7 +87,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           if (data.token) {
             localStorage.setItem('crewcore_token', data.token);
           }
-          onLoginSuccess(data.user);
+          onLoginSuccess({
+            ...data.user,
+            name: name || data.user.name
+          });
         } else {
           setErrorMsg(data.error || 'Invalid credentials.');
         }
@@ -101,7 +104,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           }
           localStorage.setItem('crewcore_token', 'simulated_dummy_jwt_token');
           onLoginSuccess({
-            name: email.split('@')[0],
+            name: name || email.split('@')[0],
             email,
             role: 'candidate',
             domain: candidateDomain
@@ -201,7 +204,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
     setErrorMsg('');
 
     if (authMode === 'signin') {
-      if (!email || !password) {
+      if (!name || !email || !password) {
         setErrorMsg('Please fill in all fields.');
         return;
       }
@@ -221,7 +224,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           if (data.token) {
             localStorage.setItem('crewcore_token', data.token);
           }
-          onLoginSuccess(data.user);
+          onLoginSuccess({
+            ...data.user,
+            name: name || data.user.name
+          });
         } else {
           setErrorMsg(data.error || 'Invalid credentials.');
         }
@@ -235,7 +241,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           }
           localStorage.setItem('crewcore_token', 'simulated_dummy_jwt_token');
           onLoginSuccess({
-            name: email.split('@')[0],
+            name: name || email.split('@')[0],
             email,
             role: 'recruiter'
           });
@@ -434,6 +440,27 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
               </div>
             )}
 
+            {authMode === 'signin' && (
+              <div className="form-group">
+                <label className="form-label">Display Name</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <User size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter display name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="form-input"
+                    style={{ width: '100%', paddingLeft: '2.5rem' }}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
@@ -589,6 +616,27 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
                     onChange={(e) => setName(e.target.value)}
                     className="form-input"
                     style={{ width: '100%', paddingLeft: '2.5rem' }}
+                  />
+                </div>
+              </div>
+            )}
+
+             {authMode === 'signin' && (
+              <div className="form-group">
+                <label className="form-label">Display Name</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <User size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter display name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="form-input"
+                    style={{ width: '100%', paddingLeft: '2.5rem' }}
+                    required
                   />
                 </div>
               </div>

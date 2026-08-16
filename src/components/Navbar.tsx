@@ -13,7 +13,6 @@ interface NavbarProps {
   onLogout: () => void;
   theme: 'classic' | 'monochrome';
   onToggleTheme: () => void;
-  onUpdateName?: (name: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,35 +22,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   theme,
   onToggleTheme,
-  onUpdateName,
 }) => {
   if (!user) return null;
-
-  const [isEditingName, setIsEditingName] = React.useState(false);
-  const [nameInput, setNameInput] = React.useState(user.name);
-
-  React.useEffect(() => {
-    setNameInput(user.name);
-  }, [user.name]);
-
-  const handleNameSave = () => {
-    setIsEditingName(false);
-    const trimmed = nameInput.trim();
-    if (trimmed && onUpdateName && trimmed !== user.name) {
-      onUpdateName(trimmed);
-    } else {
-      setNameInput(user.name);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleNameSave();
-    } else if (e.key === 'Escape') {
-      setIsEditingName(false);
-      setNameInput(user.name);
-    }
-  };
 
   const isRecruiter = user.role === 'recruiter';
 
@@ -140,46 +112,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div style={{ textAlign: 'right', display: 'block' }}>
-          {isEditingName ? (
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              onBlur={handleNameSave}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderColor: isRecruiter ? 'var(--recruiter-color)' : 'var(--candidate-color)',
-                color: 'var(--text-primary)',
-                borderRadius: '4px',
-                padding: '2px 6px',
-                textAlign: 'right',
-                width: '130px',
-                outline: 'none',
-              }}
-            />
-          ) : (
-            <div
-              onClick={() => setIsEditingName(true)}
-              title="Click to edit name"
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                borderBottom: '1px dashed rgba(255,255,255,0.2)',
-                display: 'inline-block',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => e.currentTarget.style.borderBottomColor = isRecruiter ? 'var(--recruiter-color)' : 'var(--candidate-color)'}
-              onMouseOut={(e) => e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.2)'}
-            >
-              {user.name}
-            </div>
-          )}
+          <div
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+              display: 'inline-block',
+            }}
+          >
+            {user.name}
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
             <span className={`badge ${isRecruiter ? 'badge-purple' : 'badge-emerald'}`}>
               {isRecruiter ? 'HR Recruiter' : 'HR Aspirant'}
