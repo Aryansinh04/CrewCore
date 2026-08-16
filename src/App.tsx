@@ -77,6 +77,25 @@ function App() {
     setUser(session);
     localStorage.setItem('crewcore_user', JSON.stringify(session));
     setActiveTab(session.role === 'recruiter' ? 'dashboard' : 'domains');
+
+    const token = localStorage.getItem('crewcore_token');
+    if (token && session.name) {
+      fetch('http://localhost:5000/api/auth/update-profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: session.name })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Update failed');
+        console.log('User profile name successfully updated on backend during login/signup');
+      })
+      .catch(err => {
+        console.log('Could not update profile name on server:', err.message);
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -86,33 +105,6 @@ function App() {
     setActiveTab('');
     setActiveScenarioTrigger(null);
     setAutoFillJDText(null);
-  };
-
-  const handleUpdateName = (newName: string) => {
-    if (!user) return;
-    const updatedUser = { ...user, name: newName };
-    setUser(updatedUser);
-    localStorage.setItem('crewcore_user', JSON.stringify(updatedUser));
-
-    // Update name on server if token is present
-    const token = localStorage.getItem('crewcore_token');
-    if (token) {
-      fetch('http://localhost:5000/api/auth/update-profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: newName })
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Update failed');
-        console.log('User profile name successfully updated on backend');
-      })
-      .catch(err => {
-        console.log('Could not update profile name on server:', err.message);
-      });
-    }
   };
 
 
@@ -141,7 +133,6 @@ function App() {
         onLogout={handleLogout}
         theme={theme}
         onToggleTheme={toggleTheme}
-        onUpdateName={handleUpdateName}
       />
 
       {/* Main Core Router Panels */}
