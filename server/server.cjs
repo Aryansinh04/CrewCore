@@ -919,7 +919,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // 2. Route all incoming web page requests straight to your compiled index.html file
-app.get('*', (req, res) => {
+app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
