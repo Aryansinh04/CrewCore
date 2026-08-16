@@ -811,12 +811,12 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
           {/* Dialogue Content */}
           <div style={{
             padding: '2.5rem 2rem',
-            background: 'rgba(6, 7, 10, 0.96)',
+            background: 'var(--bot-panel-bg)',
             minHeight: '280px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            color: '#f8fafc',
+            color: 'var(--text-primary)',
           }}>
             {completedScenario ? (
               <div style={{ textAlign: 'center', animation: 'fadeIn 0.3s' }}>
@@ -835,8 +835,8 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
                 }}>
                   <Award size={36} />
                 </div>
-                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', color: '#f8fafc' }}>Scenario Concluded</h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Scenario Concluded</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
                   You completed the training simulation successfully.
                 </p>
                 
@@ -847,7 +847,7 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
                   gap: '1.5rem',
                   padding: '1rem 2rem',
                   marginBottom: '2rem',
-                  border: '1px solid rgba(255,255,255,0.06)'
+                  border: '1px solid var(--border-color)'
                 }}>
                   <div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Academy Score</div>
@@ -866,7 +866,6 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
                   <button 
                     onClick={() => setActiveScenario(null)} 
                     className="btn btn-outline"
-                    style={{ color: '#f8fafc', borderColor: 'rgba(255,255,255,0.15)' }}
                   >
                     Return to Academy
                   </button>
@@ -880,7 +879,7 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                   Coach Assessment Feedback
                 </div>
-                <p style={{ fontSize: '1.25rem', color: '#fff', lineHeight: '1.5', maxWidth: '600px', margin: '0 auto 1.5rem auto' }}>
+                <p style={{ fontSize: '1.25rem', color: 'var(--text-primary)', lineHeight: '1.5', maxWidth: '600px', margin: '0 auto 1.5rem auto' }}>
                   "{selectedOptionFeedback}"
                 </p>
                 <div className="typing-indicator" style={{ display: 'inline-flex' }}>
@@ -936,7 +935,7 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
                         border: '1px solid var(--border-color)',
                         borderRadius: '10px',
                         padding: '1rem 1.25rem',
-                        color: '#f8fafc',
+                        color: 'var(--text-primary)',
                         textAlign: 'left',
                         cursor: 'pointer',
                         fontSize: '0.9rem',
