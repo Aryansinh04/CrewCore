@@ -4,12 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "server": "node server/server.cjs",
-    "start": "node server/server.cjs",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
+    "build": "npm install && vite build",
+    "start": "node server/server.cjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
