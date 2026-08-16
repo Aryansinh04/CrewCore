@@ -626,6 +626,295 @@ app.delete('/api/notes/:noteId', authMiddleware, async (req, res) => {
   }
 });
 
+// ==========================================
+// 6. GEMINI AI ROUTER & CONTROLLER LAYER
+// ==========================================
+
+const callGemini = async (prompt) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: prompt }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini API error: ${response.statusText}. Details: ${errText}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error('Invalid response structure from Gemini API');
+  }
+  return text;
+};
+
+const cleanJsonString = (str) => {
+  let cleaned = str.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*/, '');
+    cleaned = cleaned.replace(/```$/, '');
+    cleaned = cleaned.trim();
+  }
+  return cleaned;
+};
+
+// Fallback Generators (Realism Fail-safes if API Key is missing or service is offline)
+const generateJdFallback = (title, domain, keywords) => {
+  const keywordList = keywords && keywords.length > 0 ? keywords : ['Collaboration', 'Agile', 'Communication'];
+  const keywordBullets = keywordList.map(k => `- Proficient in **${k}** or related paradigms.`).join('\n');
+  return `# Job Description: ${title}
+
+## Role Overview
+We are looking for a high-performing professional to join our **${domain.replace('-', ' ').toUpperCase()}** division. In this position, you will work within an agile workspace, driving best-in-class workflows, supporting organizational development, and fostering an inclusive company culture.
+
+## Key Responsibilities
+- Drive key metrics in the **${domain}** lifecycle, ensuring alignment with corporate strategic initiatives.
+- Collaborate with engineering, product, and operations leaders to deliver cross-functional solutions.
+- Champion organizational values, diversity, and equity across all team touchpoints.
+- Analyze operational data pipelines to proactively identify bottlenecks and propose structured optimizations.
+
+## Core Requirements
+- Minimum 2+ years of hands-on experience in a relevant corporate or startup environment.
+- Strong analytical capabilities and structured problem-solving skills.
+${keywordBullets}
+- Excellent written and verbal communication skills; ability to influence senior management.
+
+## What We Offer
+- Competitive salary packages with comprehensive equity/options plan.
+- Premium medical, dental, vision, and wellness coverage.
+- $1,500 annual training stipend for course enrollments and professional development.
+- Flexible remote/hybrid working arrangement.`;
+};
+
+const getQuestionsFallback = (domain, seniority) => {
+  const questionsMap = {
+    'talent-acquisition': [
+      `Describe your process for building a sourcing pipeline for a specialized ${seniority} role.`,
+      'How do you manage a hiring manager who rejects all qualified candidates for subjective reasons?',
+      'Provide an example of a recruitment offer you negotiated and successfully closed. What was your strategy?'
+    ],
+    'employee-relations': [
+      'How do you handle an employee who raises a sexual harassment grievance against their VP?',
+      `What structured steps do you take when designing a PIP for a ${seniority} team member?`,
+      'Describe a situation where you had to enforce policy compliance when it was highly unpopular.'
+    ],
+    'learning-development': [
+      'How do you perform a skill-gap analysis for an engineering department of 100 people?',
+      'Describe the most successful training curriculum you designed. How did you measure ROI?',
+      'How do you structure a mentorship program that matches junior engineers with senior leads?'
+    ],
+    'hr-operations': [
+      'How do you analyze pay compression and market benchmarks for standardizing salaries?',
+      `Describe a major HRIS platform database migration you managed. What went wrong?`,
+      'What checks do you run to ensure compliance with payroll taxes for remote workers across multiple states?'
+    ]
+  };
+  return questionsMap[domain] || [
+    'Describe your general career history in human resources.',
+    'How do you handle difficult conversations with employees or managers?',
+    'How do you keep up-to-date with labor compliance and employment law changes?'
+  ];
+};
+
+const screenFallback = (resume, answers) => {
+  const textToAnalyze = (resume + ' ' + answers.map(a => a.answer).join(' ')).toLowerCase();
+  let score = 75;
+  const positiveKeywords = [
+    'experience', 'management', 'sourcing', 'ats', 'workday', 'payroll', 
+    'mediation', 'grievance', 'compliance', 'negotiation', 'star method', 
+    'boolean', 'certified', 'led', 'managed', 'database'
+  ];
+
+  positiveKeywords.forEach(kw => {
+    if (textToAnalyze.includes(kw)) score += 2.5;
+  });
+
+  answers.forEach(ans => {
+    if (ans.answer.length > 150) score += 3;
+    else if (ans.answer.length < 50) score -= 4;
+  });
+
+  score = Math.max(50, Math.min(98, Math.round(score)));
+
+  let summary = '';
+  let strengths = [];
+  let weaknesses = [];
+
+  if (score >= 90) {
+    summary = 'Exceptional candidate presenting comprehensive alignment with the role prerequisites. Demonstrates verified practical skills, clear communication, and solid background experience.';
+    strengths = ['Advanced domain knowledge', 'Clear, highly-structured screening responses', 'Proven metrics-driven career history'];
+    weaknesses = ['Potential overqualification for entry-level positions', 'May expect compensation at top of band'];
+  } else if (score >= 75) {
+    summary = 'Competent candidate displaying core qualifications. Has solid foundational skills, but would benefit from further assessment of practical task applications.';
+    strengths = ['Relevant base experience', 'Enthusiastic and professional responses', 'Familiar with standard tools'];
+    weaknesses = ['Needs training in complex scenario negotiations', 'Technical details in resume could be deeper'];
+  } else {
+    summary = 'Candidate meets minimum criteria but exhibits notable skill gaps or brief answers during screening. Deeper technical vetting is required.';
+    strengths = ['Basic understanding of workflows', 'Willingness to learn and adjust'];
+    weaknesses = ['Gaps in critical platform usage details', 'Short or under-explained answers to screening prompts'];
+  }
+
+  return { score, summary, strengths, weaknesses };
+};
+
+const chatFallback = (message, roleMode) => {
+  const input = message.toLowerCase();
+
+  if (roleMode === 'recruiter') {
+    if (input.includes('hi') || input.includes('hello') || input.includes('hey')) {
+      return 'Hello Recruiter! I am **CrewBot**, your HR Copilot. I can assist you with: \n\n1. Generating **Job Descriptions**\n2. Creating **Interview Questions**\n3. Pre-screening candidates.\n\nSelect an action panel above or ask me a direct question!';
+    }
+    if (input.includes('job description') || input.includes('jd')) {
+      return 'I can generate a professional Job Description for you! Use the **Job Description Generator** in the sidebar, or tell me the *Job Title*, *Domain*, and *Keywords* you want to include here.';
+    }
+    if (input.includes('interview') || input.includes('question')) {
+      return 'To generate tailored interview questions, use the **Questions Helper** in the sidebar, or let me know the department and seniority level of the hire.';
+    }
+    if (input.includes('notes') || input.includes('candidate')) {
+      return 'You can select any candidate from the **Applicant Tracker** to see their resume details, read the AI screening assessment report, and log your personal notes.';
+    }
+    return `I understand you are asking about: "${message}". As your HR assistant, I recommend checking the applicant tracker to cross-reference candidate records, or using the JD/Questions widgets on the side to automate standard paperwork. Let me know if you'd like a specific template!`;
+  } else {
+    if (input.includes('hi') || input.includes('hello') || input.includes('hey')) {
+      return 'Welcome to the **Crewcore HR Academy**! I am **CrewBot**, your personal HR training coach. \n\nHow can I help you today?\n- Type **"explain [concept]"** (e.g. *explain PIP*, *explain STAR method*) to learn.\n- Go to the **Training Academy** tab above and click **"Start Session"** to practice roleplay disputes.\n- Ask me any recruitment or compliance questions!';
+    }
+    if (input.includes('explain') || input.includes('what is') || input.includes('concept')) {
+      if (input.includes('pip') || input.includes('performance improvement')) {
+        return 'A **Performance Improvement Plan (PIP)** is a structured document that details clear deficiencies in an employee\'s performance and outlines specific, measurable goals they must achieve within a set time frame (usually 30, 60, or 90 days) to avoid termination. A good PIP is supportive, clear, and legally compliant.';
+      }
+      if (input.includes('star') || input.includes('interview')) {
+        return 'The **STAR method** is a structured technique for answering behavioral interview questions. It stands for:\n- **S**ituation: Describe the context.\n- **T**ask: Explain the goal or problem.\n- **A**ction: Detail what you did.\n- **R**esult: Share the outcome and metrics.';
+      }
+      if (input.includes('boolean') || input.includes('sourcing')) {
+        return '**Boolean Sourcing** uses operators like `AND`, `OR`, `NOT`, brackets `()`, and quotation marks `""` to construct search strings in search engines or databases. Example: `("Recruiter" OR "HR") AND "Tech" AND "New York"`. This isolates matching resumes immediately.';
+      }
+      if (input.includes('salary') || input.includes('band')) {
+        return '**Salary Banding** is the process of setting range structures (minimum, midpoint, maximum) for compensation packages based on market rates and job evaluation. It maintains equity across roles and ensures budget controls.';
+      }
+    }
+    if (input.includes('apply') || input.includes('job')) {
+      return 'You can check out our simulated jobs under the **Browse Jobs & Apply** panel. Explore various domains, upload a mock resume, and answer screening questions to test your profile and receive an instant AI assessment score!';
+    }
+    return `Good question! In HR, managing "${message}" involves balancing organizational compliance with empathy. \n\nI recommend trying the **Mediate Conflict** or **Out-of-Band Salary Exception** training roleplays in the Academy section to see this in action, or ask me for more details on specific HR frameworks.`;
+  }
+};
+
+// AI Routes
+
+// 1. Generate JD
+app.post('/api/ai/generate-jd', authMiddleware, async (req, res) => {
+  const { title, domain, keywords } = req.body;
+  if (!title || !domain) {
+    return res.status(400).json({ error: 'Title and Domain are required.' });
+  }
+
+  try {
+    const prompt = `Write a professional Job Description for the job title: '${title}' in the department/domain: '${domain}'. Key skills to highlight: ${keywords ? keywords.join(', ') : 'none'}. Return the response in Markdown format.`;
+    const jdText = await callGemini(prompt);
+    return res.status(200).json({ jd: jdText });
+  } catch (err) {
+    console.warn('Gemini JD generation offline, using fallback:', err.message);
+    const fallbackJd = generateJdFallback(title, domain, keywords);
+    return res.status(200).json({ jd: fallbackJd, fallback: true });
+  }
+});
+
+// 2. Generate Interview Questions
+app.post('/api/ai/interview-questions', authMiddleware, async (req, res) => {
+  const { domain, seniority } = req.body;
+  if (!domain) {
+    return res.status(400).json({ error: 'Domain is required.' });
+  }
+
+  try {
+    const prompt = `Generate a list of exactly 3 professional interview questions for a candidate applying for a '${domain}' role at seniority level '${seniority || 'Mid-Level'}'. Return only the list of questions as a JSON array of strings, e.g. ["question 1", "question 2", "question 3"]. Do not include markdown code block formatting or other text, just the raw JSON array.`;
+    const responseText = await callGemini(prompt);
+    const cleaned = cleanJsonString(responseText);
+    const questions = JSON.parse(cleaned);
+    if (!Array.isArray(questions)) throw new Error('Response is not a JSON array');
+    return res.status(200).json(questions);
+  } catch (err) {
+    console.warn('Gemini questions generation offline, using fallback:', err.message);
+    const fallbackQ = getQuestionsFallback(domain, seniority || 'Mid-Level');
+    return res.status(200).json(fallbackQ);
+  }
+});
+
+// 3. Screen Application
+app.post('/api/ai/screen', authMiddleware, async (req, res) => {
+  const { resume, answers } = req.body;
+  if (!resume || !answers) {
+    return res.status(400).json({ error: 'Resume and Answers are required.' });
+  }
+
+  try {
+    const prompt = `Evaluate the following candidate application for a role.
+Candidate Resume Content:
+${resume}
+
+Screening Question & Answers:
+${JSON.stringify(answers)}
+
+Assess the candidate fit. Output the result strictly in JSON format matching this schema:
+{
+  "score": <number between 50 and 99 representing candidate fit percentage>,
+  "summary": "<brief 2-3 sentence overview of candidate suitability>",
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<area to improve 1>", "<area to improve 2>", "<area to improve 3>"]
+}
+Do not include markdown code block formatting or other text, just the raw JSON.`;
+    const responseText = await callGemini(prompt);
+    const cleaned = cleanJsonString(responseText);
+    const result = JSON.parse(cleaned);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.warn('Gemini candidate screening offline, using fallback:', err.message);
+    const fallbackResult = screenFallback(resume, answers);
+    return res.status(200).json(fallbackResult);
+  }
+});
+
+// 4. Chat with Bot
+app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+  const { history, message, roleMode } = req.body;
+  if (!message || !roleMode) {
+    return res.status(400).json({ error: 'Message and RoleMode are required.' });
+  }
+
+  try {
+    const botContext = roleMode === 'recruiter'
+      ? "You are CrewBot, a helpful AI Recruiting Assistant for Crewcore HR. You help recruiters draft job descriptions, prepare interview templates, and screen candidates. Keep responses professional, clear, and action-oriented. Support simple bolding (**text**) and bullet lists (- item) in markdown."
+      : "You are CrewBot, a helpful AI HR Coach for candidates in the Crewcore HR Learning Academy. You explain HR concepts (like STAR method, PIPs, compliance) and guide candidates through roleplay exercises. Keep responses supportive, clear, and educational. Support simple bolding (**text**) and bullet lists (- item) in markdown.";
+    
+    let formattedHistory = '';
+    if (history && history.length > 0) {
+      formattedHistory = "History:\n" + history.map(h => `${h.role === 'user' ? 'User' : 'CrewBot'}: ${h.content}`).join('\n') + '\n';
+    }
+
+    const prompt = `${botContext}\n\n${formattedHistory}User: ${message}\nCrewBot:`;
+    const responseText = await callGemini(prompt);
+    return res.status(200).json({ response: responseText });
+  } catch (err) {
+    console.warn('Gemini chat offline, using fallback:', err.message);
+    const fallbackResponse = chatFallback(message, roleMode);
+    return res.status(200).json({ response: fallbackResponse });
+  }
+});
+
 // Start Express Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
