@@ -1,6 +1,6 @@
-// Login Component - Crewcore HR Management System
 import React, { useState, useEffect } from 'react';
 import { Award, Briefcase, GraduationCap, Lock, Mail, User, BookOpen, Sun, Moon } from 'lucide-react';
+import { getApiBaseUrl } from '../services/aiEngine';
 
 interface LoginProps {
   onLoginSuccess: (user: { name: string; email: string; role: 'recruiter' | 'candidate'; domain?: string }) => void;
@@ -67,12 +67,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
     setErrorMsg('');
 
     if (authMode === 'signin') {
-      if (!name || !email || !password) {
-        setErrorMsg('Please fill in all fields.');
+      if (!email || !password) {
+        setErrorMsg('Please fill in email and password.');
         return;
       }
       try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, role: 'candidate' })
@@ -89,7 +89,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           }
           onLoginSuccess({
             ...data.user,
-            name: name || data.user.name
+            name: data.user?.name || name || email.split('@')[0]
           });
         } else {
           setErrorMsg(data.error || 'Invalid credentials.');
@@ -120,7 +120,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
         return;
       }
       try {
-        const response = await fetch('http://localhost:5000/api/auth/signup', {
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, role: 'candidate', domain: candidateDomain })
@@ -174,7 +174,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
 
     // Try to dispatch real email via our local Express Nodemailer backend
     try {
-      const response = await fetch('http://localhost:5000/api/otp/send', {
+      const response = await fetch(`${getApiBaseUrl()}/api/otp/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,12 +204,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
     setErrorMsg('');
 
     if (authMode === 'signin') {
-      if (!name || !email || !password) {
-        setErrorMsg('Please fill in all fields.');
+      if (!email || !password) {
+        setErrorMsg('Please fill in email and password.');
         return;
       }
       try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, role: 'recruiter' })
@@ -226,7 +226,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
           }
           onLoginSuccess({
             ...data.user,
-            name: name || data.user.name
+            name: data.user?.name || name || email.split('@')[0]
           });
         } else {
           setErrorMsg(data.error || 'Invalid credentials.');
@@ -257,7 +257,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
       }
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/signup', {
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -440,27 +440,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
               </div>
             )}
 
-            {authMode === 'signin' && (
-              <div className="form-group">
-                <label className="form-label">Display Name</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                    <User size={16} />
-                  </span>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter display name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="form-input"
-                    style={{ width: '100%', paddingLeft: '2.5rem' }}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
@@ -616,27 +595,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
                     onChange={(e) => setName(e.target.value)}
                     className="form-input"
                     style={{ width: '100%', paddingLeft: '2.5rem' }}
-                  />
-                </div>
-              </div>
-            )}
-
-             {authMode === 'signin' && (
-              <div className="form-group">
-                <label className="form-label">Display Name</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                    <User size={16} />
-                  </span>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter display name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="form-input"
-                    style={{ width: '100%', paddingLeft: '2.5rem' }}
-                    required
                   />
                 </div>
               </div>

@@ -7,10 +7,13 @@ export interface ScreeningReport {
   weaknesses: string[];
 }
 
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   // Read Vite env variable if present, otherwise default to local server
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) return envUrl;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin;
+  }
   return 'http://localhost:5000';
 };
 

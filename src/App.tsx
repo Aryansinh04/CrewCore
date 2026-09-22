@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { CandidatePortal } from './pages/CandidatePortal';
 import { RecruiterPortal } from './pages/RecruiterPortal';
 import { AiBot } from './components/AiBot';
+import { getApiBaseUrl } from './services/aiEngine';
 
 interface UserSession {
   name: string;
@@ -39,7 +40,7 @@ function App() {
 
     // Sync latest user details from backend database if token exists
     if (token) {
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch(`${getApiBaseUrl()}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -80,7 +81,7 @@ function App() {
 
     const token = localStorage.getItem('crewcore_token');
     if (token && session.name) {
-      fetch('http://localhost:5000/api/auth/update-profile', {
+      fetch(`${getApiBaseUrl()}/api/auth/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

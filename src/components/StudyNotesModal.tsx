@@ -144,7 +144,7 @@ export const StudyNotesModal: React.FC<StudyNotesModalProps> = ({
           // Bullet Points (• or -)
           if (trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
             const isSubBullet = line.startsWith('  ') || line.startsWith('\t');
-            const bulletContent = trimmed.replace(/^[•\-\*]\s*/, '');
+            const bulletContent = trimmed.replace(/^[•\-*]\s*/, '');
             
             // Format bold terms inside bullet point (e.g. **Term** or Term:)
             const parts = bulletContent.split(/(\*\*.*?\*\*|`.*?`)/g);
