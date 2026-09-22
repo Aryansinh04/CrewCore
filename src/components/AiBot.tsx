@@ -102,7 +102,7 @@ export const AiBot: React.FC<AiBotProps> = ({
       timestamp: new Date(),
     };
     setMessages([welcomeMsg]);
-  }, [userRole]);
+  }, [userRole, isRecruiter]);
 
   // Save messages to local storage
   useEffect(() => {

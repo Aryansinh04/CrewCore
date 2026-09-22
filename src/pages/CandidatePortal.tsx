@@ -4,7 +4,7 @@ import { MOCK_JOBS, getStoredDomains, saveStoredDomainNotes } from '../data/mock
 import type { HrDomain, JobListing, Candidate } from '../data/mockData';
 import { TRAINING_SCENARIOS } from '../data/trainingScenarios';
 import type { TrainingScenario } from '../data/trainingScenarios';
-import { aiEngine } from '../services/aiEngine';
+import { aiEngine, getApiBaseUrl } from '../services/aiEngine';
 import type { ScreeningReport } from '../services/aiEngine';
 import { StudyNotesModal } from '../components/StudyNotesModal';
 import { BookOpen, Award, ArrowRight, ShieldCheck, Sparkles, Check, ChevronRight, Play, X, FileText, ExternalLink } from 'lucide-react';
@@ -58,7 +58,7 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
     const fetchJobs = async () => {
       try {
         const token = localStorage.getItem('crewcore_token');
-        const response = await fetch('http://localhost:5000/api/jobs', {
+        const response = await fetch(`${getApiBaseUrl()}/api/jobs`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -171,7 +171,7 @@ export const CandidatePortal: React.FC<CandidatePortalProps> = ({
       // Save application record to MongoDB
       try {
         const token = localStorage.getItem('crewcore_token');
-        const response = await fetch('http://localhost:5000/api/candidates', {
+        const response = await fetch(`${getApiBaseUrl()}/api/candidates`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

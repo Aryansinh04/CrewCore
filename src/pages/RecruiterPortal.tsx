@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MOCK_CANDIDATES, getStoredDomains, saveStoredDomainNotes, resetStoredDomainNotes } from '../data/mockData';
 import type { Candidate, HrDomain } from '../data/mockData';
-import { aiEngine } from '../services/aiEngine';
+import { aiEngine, getApiBaseUrl } from '../services/aiEngine';
 import { StudyNotesModal } from '../components/StudyNotesModal';
 import { Users, FileText, CheckCircle, HelpCircle, FileSignature, Plus, Trash2, ShieldCheck, Sparkles, BarChart2, BookOpen, RotateCcw, Check, ExternalLink } from 'lucide-react';
 
@@ -77,7 +77,7 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
     const syncCandidates = async () => {
       try {
         const token = localStorage.getItem('crewcore_token');
-        const response = await fetch('http://localhost:5000/api/candidates', {
+        const response = await fetch(`${getApiBaseUrl()}/api/candidates`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -118,14 +118,14 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
       setGeneratedJd(autoFillJDText);
       if (onClearAutoFillJD) onClearAutoFillJD();
     }
-  }, [autoFillJDText]);
+  }, [autoFillJDText, onClearAutoFillJD]);
 
   // Set default selected candidate
   useEffect(() => {
     if (candidates.length > 0 && !selectedCandidate) {
       setSelectedCandidate(candidates[0]);
     }
-  }, [candidates]);
+  }, [candidates, selectedCandidate]);
 
   // Load Notes when selected candidate changes
   useEffect(() => {
@@ -134,7 +134,7 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
       
       try {
         const token = localStorage.getItem('crewcore_token');
-        const response = await fetch(`http://localhost:5000/api/candidates/${selectedCandidate.id}/notes`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/candidates/${selectedCandidate.id}/notes`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -180,7 +180,7 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
 
     try {
       const token = localStorage.getItem('crewcore_token');
-      const response = await fetch(`http://localhost:5000/api/candidates/${selectedCandidate.id}/status`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/candidates/${selectedCandidate.id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
 
     try {
       const token = localStorage.getItem('crewcore_token');
-      const response = await fetch(`http://localhost:5000/api/candidates/${selectedCandidate.id}/notes`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/candidates/${selectedCandidate.id}/notes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +248,7 @@ export const RecruiterPortal: React.FC<RecruiterPortalProps> = ({
 
     try {
       const token = localStorage.getItem('crewcore_token');
-      const response = await fetch(`http://localhost:5000/api/notes/${noteId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/notes/${noteId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
