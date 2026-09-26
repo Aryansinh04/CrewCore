@@ -21,6 +21,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
   
   // Status states
   const [errorMsg, setErrorMsg] = useState('');
+  const [suggestedRole, setSuggestedRole] = useState<'candidate' | 'recruiter' | null>(null);
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isSimulated, setIsSimulated] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
@@ -39,6 +40,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
     setActiveTab(tab);
     setAuthMode('signin');
     setErrorMsg('');
+    setSuggestedRole(null);
     setIsCodeSent(false);
     setIsSimulated(false);
     setName('');
@@ -55,6 +57,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
   const handleModeChange = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
     setErrorMsg('');
+    setSuggestedRole(null);
     setIsCodeSent(false);
     setIsSimulated(false);
     setName('');
@@ -65,6 +68,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
   const handleCandidateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuggestedRole(null);
 
     if (authMode === 'signin') {
       if (!email || !password) {
@@ -92,6 +96,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
             name: data.user?.name || name || email.split('@')[0]
           });
         } else {
+          if (data.suggestedRole) {
+            setSuggestedRole(data.suggestedRole);
+          }
           setErrorMsg(data.error || 'Invalid credentials.');
         }
       } catch (err) {
@@ -202,6 +209,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
   const handleRecruiterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuggestedRole(null);
 
     if (authMode === 'signin') {
       if (!email || !password) {
@@ -229,6 +237,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
             name: data.user?.name || name || email.split('@')[0]
           });
         } else {
+          if (data.suggestedRole) {
+            setSuggestedRole(data.suggestedRole);
+          }
           setErrorMsg(data.error || 'Invalid credentials.');
         }
       } catch (err) {
@@ -411,8 +422,29 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, theme, onToggleThe
 
         {/* Form Error */}
         {errorMsg && (
-          <div className="alert-error">
-            {errorMsg}
+          <div className="alert-error" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div>{errorMsg}</div>
+            {suggestedRole && (
+              <button
+                type="button"
+                onClick={() => handleTabChange(suggestedRole)}
+                style={{
+                  alignSelf: 'flex-start',
+                  marginTop: '0.25rem',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#fff',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                👉 Switch to {suggestedRole === 'recruiter' ? 'HR Recruiter' : 'HR Aspirant'} Tab
+              </button>
+            )}
           </div>
         )}
 
