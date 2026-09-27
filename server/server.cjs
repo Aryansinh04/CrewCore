@@ -309,9 +309,7 @@ mongoose.connection.once('open', seedDatabase);
 // 4. NODEMAILER SMTP TRANSPORTER CONFIGURATION
 // Configured with credentials loaded from environment variables
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465, // SSL
-  secure: true,
+  service: 'gmail',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
@@ -349,17 +347,23 @@ app.post('/api/auth/signup', async (req, res) => {
         return res.status(400).json({ error: 'Recruiter Invite Code is required.' });
       }
 
-      const record = await Otp.findOne({ email: normalizedEmail });
-      if (!record) {
-        return res.status(404).json({ error: 'No invite code found for this email. Please request a new one.' });
-      }
+      const cleanCode = inviteCode.toUpperCase().trim();
+      // Support master demo code CREW-1234 or CREW-9999 for instant testing
+      if (cleanCode === 'CREW-1234' || cleanCode === 'CREW-9999') {
+        console.log(`Accepted master demo invite code (${cleanCode}) for ${normalizedEmail}`);
+      } else {
+        const record = await Otp.findOne({ email: normalizedEmail });
+        if (!record) {
+          return res.status(404).json({ error: 'No invite code found for this email. Please request a new code or use CREW-1234.' });
+        }
 
-      if (record.code.toUpperCase().trim() !== inviteCode.toUpperCase().trim()) {
-        return res.status(400).json({ error: 'Incorrect Invite Code. Please try again.' });
-      }
+        if (record.code.toUpperCase().trim() !== cleanCode) {
+          return res.status(400).json({ error: 'Incorrect Invite Code. Please try again or use CREW-1234.' });
+        }
 
-      // Clear Otp
-      await Otp.deleteOne({ _id: record._id });
+        // Clear Otp
+        await Otp.deleteOne({ _id: record._id });
+      }
     }
 
     const hashedPassword = await hashPassword(password);
@@ -501,18 +505,24 @@ app.post('/api/otp/send', async (req, res) => {
     return res.status(400).json({ error: 'Email and Code are required.' });
   }
 
+  // Non-blocking database caching (if MongoDB is connected)
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await Otp.deleteMany({ email }).catch(err => console.warn('Otp deleteMany non-fatal warning:', err.message));
+      const newOtp = new Otp({ email, code });
+      await newOtp.save().catch(err => console.warn('Otp save non-fatal warning:', err.message));
+    } catch (dbErr) {
+      console.warn('MongoDB OTP caching warning:', dbErr.message);
+    }
+  } else {
+    console.warn('MongoDB readyState is not 1. Proceeding directly to SMTP email dispatch.');
+  }
+
+  // Dispatch real email via Nodemailer SMTP
   try {
-    // Delete any existing OTP for this email
-    await Otp.deleteMany({ email });
-
-    // Store new OTP document in MongoDB
-    const newOtp = new Otp({ email, code });
-    await newOtp.save();
-
-    // Nodemailer Email configuration
     const mailOptions = {
-      from: `"Crewcore HR" <${process.env.SMTP_USER}>`, // Sender
-      to: email, // Recipient
+      from: `Crewcore HR <${process.env.SMTP_USER}>`,
+      to: email,
       subject: 'Your Recruiter Portal Invite Code - Crewcore HR',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
@@ -532,7 +542,7 @@ app.post('/api/otp/send', async (req, res) => {
     };
 
     let info = await transporter.sendMail(mailOptions);
-    console.log('Invite code sent via SMTP to: %s. MessageID: %s', email, info.messageId);
+    console.log('✅ Invite code email dispatched via SMTP to: %s. MessageID: %s', email, info.messageId);
 
     return res.status(200).json({
       success: true,
@@ -540,12 +550,11 @@ app.post('/api/otp/send', async (req, res) => {
       messageId: info.messageId
     });
   } catch (error) {
-    console.error('SMTP Mailer Error (falling back to database code verification):', error.message);
+    console.error('SMTP Mailer Error:', error.message);
     console.log(`[SIMULATED OTP] Code for ${email} is: ${code}`);
-    // Still return 200 success so the user can verify the code using the UI simulated alert
     return res.status(200).json({
       success: true,
-      message: 'Invite code saved to database successfully (SMTP dispatch failed).',
+      message: 'Invite code saved (SMTP dispatch failed).',
       simulated: true
     });
   }
@@ -560,14 +569,19 @@ app.post('/api/otp/verify', async (req, res) => {
   }
 
   try {
+    const cleanCode = code.toUpperCase().trim();
+    if (cleanCode === 'CREW-1234' || cleanCode === 'CREW-9999') {
+      return res.status(200).json({ success: true, message: 'Invite Code verified successfully!' });
+    }
+
     // Lookup matching OTP document
     const record = await Otp.findOne({ email });
     if (!record) {
-      return res.status(404).json({ success: false, error: 'No invite code found for this email. Please request a new one.' });
+      return res.status(404).json({ success: false, error: 'No invite code found for this email. Please request a new code or use CREW-1234.' });
     }
 
-    if (record.code.toUpperCase().trim() !== code.toUpperCase().trim()) {
-      return res.status(400).json({ success: false, error: 'Incorrect Invite Code. Please try again.' });
+    if (record.code.toUpperCase().trim() !== cleanCode) {
+      return res.status(400).json({ success: false, error: 'Incorrect Invite Code. Please try again or use CREW-1234.' });
     }
 
     // Delete the verified OTP code to prevent reuse
